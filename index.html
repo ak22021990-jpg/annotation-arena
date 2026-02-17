@@ -631,7 +631,7 @@
       <h2>Demo: Example Mission Clip and Event Log</h2>
       <button id="closeDemo" class="btn secondary">Close</button>
     </div>
-    <video id="demoVideo" controls crossorigin="anonymous" src="https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/Demo.mp4"></video>
+    <video id="demoVideo" controls autoplay muted crossorigin="anonymous" src="https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/Demo.mp4"></video>
     <table>
       <thead>
         <tr><th>#</th><th>Start</th><th>End</th><th>Duration</th><th>Description</th></tr>
@@ -675,8 +675,9 @@ const state = {
   preStartLocked: true,
   tourActive: false,
   tourStepIndex: 0,
-  loopSegment: false
-  , demoSeen: false
+  loopSegment: false,
+  demoSeen: false,
+  proceedToSessionAfterDemo: false
 };
 
 const homeSection = document.getElementById("homeSection");
@@ -730,22 +731,52 @@ const tourSteps = [
   { title: 'Main Panel', text: 'Hosts the video player with controls to play, pause, and replay the video.' }
 ];
 
-startBtn.addEventListener("click", beginSession);
-demoBtn.addEventListener("click", () => {
-  // If demo already seen once, go directly to annotator main page
-  if (state.demoSeen) {
-    homeSection.classList.add('hidden');
-    annotatorSection.classList.remove('hidden');
-    loadVideo(0);
+startBtn.addEventListener("click", () => {
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim().toLowerCase();
+
+  if (!name) {
+    setHomeStatus("Please enter your name.", true);
     return;
   }
+  if (!email || /^\S+@\S+\.\S+$/.test(email) === false) {
+    setHomeStatus("Please enter a valid email address.", true);
+    return;
+  }
+
+  const usedEmails = getUsedEmails();
+  if (usedEmails.includes(email)) {
+    setHomeStatus("This email has already completed an attempt. A second attempt is not allowed.", true);
+    return;
+  }
+
+  // If demo already seen, proceed directly to session
+  if (state.demoSeen) {
+    beginSession();
+    return;
+  }
+
+  // Show demo first
+  state.proceedToSessionAfterDemo = true;
   demoDialog.showModal();
-  try { demoVideo.currentTime = 0; demoVideo.play(); } catch (e) {}
+  demoVideo.currentTime = 0;
+  demoVideo.play().catch(err => console.log('Video autoplay prevented:', err));
   state.demoSeen = true;
+});
+demoBtn.addEventListener("click", () => {
+  demoDialog.showModal();
+  demoVideo.currentTime = 0;
+  demoVideo.play().catch(err => console.log('Video autoplay prevented:', err));
 });
 closeDemo.addEventListener("click", () => {
   try { demoVideo.pause(); demoVideo.currentTime = 0; } catch (e) {}
   demoDialog.close();
+  
+  // If we're proceeding from Launch Mission, start the session
+  if (state.proceedToSessionAfterDemo) {
+    state.proceedToSessionAfterDemo = false;
+    beginSession();
+  }
 });
 
 setStartBtn.addEventListener("click", setStart);
