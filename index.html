@@ -1,0 +1,1537 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Video Annotation Task</title>
+<style>
+  :root{
+    --bg:#050914;
+    --bg-2:#0a1430;
+    --card:#0d1730;
+    --card-2:#0b1f3d;
+    --accent:#68f0b8;
+    --accent-2:#42d4ff;
+    --text:#e7f3ff;
+    --muted:#9cb2cc;
+    --danger:#ff6f7d;
+    --warning:#ffd97a;
+    --line:rgba(255,255,255,0.11);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Trebuchet MS","Segoe UI",Tahoma,sans-serif;
+    background:
+      radial-gradient(1200px 700px at 0% -10%, rgba(66,212,255,0.25), transparent 65%),
+      radial-gradient(1100px 620px at 100% 0%, rgba(104,240,184,0.2), transparent 60%),
+      linear-gradient(170deg, var(--bg) 0%, var(--bg-2) 50%, #060c1c 100%);
+    color:var(--text);
+    min-height:100vh;
+  }
+
+  .container{
+    max-width:1300px;
+    margin:0 auto;
+    padding:24px;
+    animation:fadeUp .55s ease both;
+  }
+
+  .card{
+    background:linear-gradient(170deg, var(--card), var(--card-2));
+    border-radius:14px;
+    padding:16px;
+    border:1px solid var(--line);
+    box-shadow:0 14px 40px rgba(0,0,0,0.34);
+    backdrop-filter: blur(3px);
+    animation:panelIn .5s ease both;
+  }
+
+  h1,h2,h3{margin:0 0 12px; letter-spacing:0.2px;}
+  h1{font-size:32px;}
+  h2{font-size:18px; color:var(--accent);}
+  h3{font-size:15px; color:var(--accent-2); text-transform:uppercase;}
+
+  .muted{color:var(--muted);}
+  .hidden{display:none !important;}
+
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding:10px 14px;
+    font-weight:600;
+    cursor:pointer;
+    background:linear-gradient(90deg,var(--accent),#33d4f7);
+    color:#021421;
+    transition:transform .14s ease, box-shadow .14s ease;
+    box-shadow:0 8px 18px rgba(66,212,255,0.22);
+  }
+  .btn:hover{transform:translateY(-2px) scale(1.01);}
+  .btn:active{transform:translateY(0) scale(0.99);}
+
+  .btn.secondary{
+    background:rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.2);
+    color:var(--text);
+    box-shadow:none;
+  }
+
+  .btn.warn{
+    background:linear-gradient(90deg, #ff9a7b, #ff6f7d);
+    color:#2f0811;
+  }
+
+  .btn:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+  }
+
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .col{display:flex; flex-direction:column; gap:8px;}
+
+  input, textarea{
+    width:100%;
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:10px;
+    background:rgba(7,16,38,0.9);
+    color:var(--text);
+    padding:10px;
+    font:inherit;
+  }
+  input:focus,textarea:focus{
+    outline:none;
+    border-color:rgba(66,212,255,0.6);
+    box-shadow:0 0 0 2px rgba(66,212,255,0.2);
+  }
+
+  textarea{min-height:86px; resize:vertical;}
+
+  .grid{
+    display:grid;
+    gap:16px;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .guide{
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.11);
+    border-radius:10px;
+    padding:12px;
+    line-height:1.45;
+  }
+
+  ul{margin:8px 0 0 20px; padding:0;}
+  li{margin:6px 0;}
+
+  .status{
+    margin-top:10px;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.05);
+    color:var(--muted);
+  }
+
+  .status.error{
+    color:#ffd5da;
+    border:1px solid rgba(255,111,125,0.5);
+    background:rgba(255,111,125,0.12);
+  }
+
+  .status.ok{
+    color:#d2ffed;
+    border:1px solid rgba(124,255,184,0.35);
+    background:rgba(124,255,184,0.12);
+  }
+
+  video{
+    width:100%;
+    background:#000;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.18);
+    max-height:460px;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+    margin-top:10px;
+  }
+
+  th, td{
+    border-bottom:1px solid rgba(255,255,255,0.1);
+    text-align:left;
+    padding:8px;
+    vertical-align:top;
+  }
+
+  th{color:#c8deff; text-transform:uppercase; font-size:12px; letter-spacing:0.6px;}
+
+  .pill{
+    background:rgba(66,212,255,0.12);
+    color:#d5eeff;
+    border:1px solid rgba(66,212,255,0.3);
+    border-radius:999px;
+    padding:5px 10px;
+    font-size:12px;
+  }
+  .pill.urgent{
+    border-color:rgba(255,217,122,0.65);
+    box-shadow:0 0 18px rgba(255,217,122,0.35);
+    animation:pulseWarn 1s ease-in-out infinite;
+  }
+
+  .divider{height:1px; background:rgba(255,255,255,0.15); margin:14px 0;}
+
+  dialog{
+    width:min(920px, 94vw);
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(170deg, #0d1d39, #0a1730);
+    color:var(--text);
+    padding:0;
+    border:1px solid rgba(255,255,255,0.14);
+  }
+
+  dialog::backdrop{background:rgba(0,0,0,0.55);}
+
+  .dialog-body{padding:16px;}
+
+  .timer{
+    font-weight:700;
+    color:var(--warning);
+  }
+
+  .annotator-wrap{
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:18px;
+  }
+
+  .side-panel{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .side-panel::before{
+    content:"";
+    position:absolute;
+    inset:-40% auto auto -30%;
+    width:240px;
+    height:240px;
+    border-radius:999px;
+    background:radial-gradient(circle, rgba(66,212,255,0.2), transparent 72%);
+    pointer-events:none;
+  }
+
+  .main-panel{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    animation:fadeUp .5s ease both;
+  }
+
+  .player-row{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+
+  .player-meta{
+    display:flex;
+    gap:12px;
+    justify-content:space-between;
+    margin-top:8px;
+  }
+
+  .control-deck{
+    margin-top:10px;
+    padding:10px;
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px;
+    background:rgba(255,255,255,0.03);
+  }
+
+  .seek-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .seek-row input[type="range"]{
+    flex:1;
+    padding:0;
+  }
+
+  .control-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:10px;
+    align-items:center;
+  }
+
+  .speed-select{
+    min-width:96px;
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:8px;
+    background:rgba(7,16,38,0.9);
+    color:var(--text);
+    padding:8px;
+  }
+
+  .controls-col{
+    min-width:260px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .mission-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+
+  .hud{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:8px;
+  }
+
+  .hud-card{
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px;
+    padding:8px;
+  }
+
+  .hud-label{
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+  }
+
+  .hud-value{
+    font-weight:700;
+    color:#dffff2;
+    margin-top:4px;
+  }
+
+  .progress-track{
+    width:100%;
+    height:10px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.1);
+    overflow:hidden;
+  }
+
+  .progress-fill{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    box-shadow:0 0 16px rgba(66,212,255,0.5);
+    transition:width .25s ease;
+    animation:progressShimmer 2.2s linear infinite;
+  }
+
+  .home-banner{
+    border-radius:12px;
+    padding:12px;
+    background:linear-gradient(90deg, rgba(104,240,184,0.16), rgba(66,212,255,0.14));
+    border:1px solid rgba(255,255,255,0.18);
+    margin-bottom:14px;
+    animation:glowPulse 3s ease-in-out infinite;
+  }
+
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.2);
+    color:#dff6ff;
+    font-size:12px;
+  }
+
+  .controls-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .tour-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(2,8,18,0.68);
+    z-index:1000;
+  }
+
+  .tour-card{
+    position:fixed;
+    width:min(360px, 92vw);
+    max-height:min(72vh, 520px);
+    overflow:auto;
+    background:linear-gradient(170deg, #13284a, #0a1730);
+    border:1px solid rgba(255,255,255,0.24);
+    border-radius:12px;
+    padding:12px;
+    box-shadow:0 14px 34px rgba(0,0,0,0.45);
+    z-index:1002;
+  }
+
+  .tour-step{
+    font-size:11px;
+    color:#b9d9f7;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+    margin-bottom:8px;
+  }
+
+  .tour-focus{
+    position:relative;
+    z-index:1001 !important;
+    box-shadow:0 0 0 2px rgba(66,212,255,0.95), 0 0 26px rgba(66,212,255,0.45) !important;
+    border-radius:10px;
+  }
+
+  .video-blocked{
+    pointer-events:none;
+    opacity:0.85;
+    filter:saturate(0.7);
+  }
+
+  .table-enter tbody tr{
+    animation:rowIn .28s ease both;
+  }
+
+  .table-enter tbody tr:nth-child(2){animation-delay:.03s;}
+  .table-enter tbody tr:nth-child(3){animation-delay:.06s;}
+  .table-enter tbody tr:nth-child(4){animation-delay:.09s;}
+  .table-enter tbody tr:nth-child(5){animation-delay:.12s;}
+  .table-enter tbody tr:nth-child(n+6){animation-delay:.15s;}
+
+  .section-enter{
+    animation:sectionSwap .45s ease both;
+  }
+
+  @keyframes panelIn{
+    from{opacity:0; transform:translateY(10px) scale(.995);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+
+  @keyframes fadeUp{
+    from{opacity:0; transform:translateY(12px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  @keyframes glowPulse{
+    0%,100%{box-shadow:0 0 0 rgba(66,212,255,0);}
+    50%{box-shadow:0 0 24px rgba(66,212,255,0.18);}
+  }
+
+  @keyframes progressShimmer{
+    0%{filter:brightness(1);}
+    50%{filter:brightness(1.18);}
+    100%{filter:brightness(1);}
+  }
+
+  @keyframes pulseWarn{
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.02);}
+  }
+
+  @keyframes rowIn{
+    from{opacity:0; transform:translateX(8px);}
+    to{opacity:1; transform:translateX(0);}
+  }
+
+  @keyframes sectionSwap{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none !important; transition:none !important;}
+  }
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr;}
+    .annotator-wrap{grid-template-columns:1fr;}
+    .player-row{flex-direction:column;}
+    .controls-col{min-width:0;width:100%;}
+    .hud{grid-template-columns:1fr;}
+    .tour-card{left:16px !important; top:auto !important; bottom:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <section id="homeSection" class="card">
+    <div class="home-banner">
+      <span class="badge">Mission Mode</span>
+      <h1 style="margin-top:8px;">Annotation Arena</h1>
+      <p class="muted" style="margin:0;">Enter your identity, review objectives, and complete all 5 challenge videos.</p>
+    </div>
+
+    <div class="grid">
+      <div class="col">
+        <h3>Player Registration</h3>
+        <label for="nameInput">Player Name</label>
+        <input id="nameInput" type="text" placeholder="Enter your full name" maxlength="120"/>
+
+        <label for="emailInput">Email Address</label>
+        <input id="emailInput" type="email" placeholder="Enter your email" maxlength="160"/>
+
+        <div class="row">
+          <button id="startBtn" class="btn">Launch Mission</button>
+          <button id="demoBtn" class="btn secondary">View Demo</button>
+        </div>
+
+        <div id="homeStatus" class="status">You can start only once per email address.</div>
+      </div>
+
+      <div class="guide">
+        <h3>Mission Guidelines</h3>
+        <ul>
+          <li>You get one video at a time. Finish your current mission before moving on.</li>
+          <li>Use <strong>Set Start</strong> and <strong>Set End</strong> to lock event timestamps.</li>
+          <li>Write clear, objective descriptions of what happens in each segment.</li>
+          <li>Each video has a <strong>10-minute timer</strong>. Work efficiently.</li>
+          <li>When at least one annotation is added, <strong>Next Video</strong> unlocks.</li>
+          <li>Finish all 5 videos to unlock final <strong>CSV Export</strong>.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="annotatorSection" class="card hidden" style="margin-top:18px;">
+    <div class="annotator-wrap">
+      <aside class="side-panel card">
+        <div class="mission-title">
+          <h2>Mission Control</h2>
+          <span class="badge">Live</span>
+        </div>
+        <div class="row">
+          <span class="pill" id="progressPill">Video 1 of 5</span>
+        </div>
+        <div class="pill">User: <span id="userLabel"></span></div>
+        <div class="pill">Time Left: <span id="timerLabel" class="timer">10:00</span></div>
+        <div class="progress-track">
+          <div id="missionProgressFill" class="progress-fill"></div>
+        </div>
+
+        <div class="hud">
+          <div class="hud-card">
+            <div class="hud-label">Completed</div>
+            <div id="completedValue" class="hud-value">0 / 5</div>
+          </div>
+          <div class="hud-card">
+            <div class="hud-label">Annotations</div>
+            <div id="annotationCountValue" class="hud-value">0</div>
+          </div>
+        </div>
+        <div id="annotationStatus" class="status">Add at least one annotation to enable Next Video.</div>
+
+        <div class="divider"></div>
+
+        <button id="nextBtn" class="btn" disabled>Next Video</button>
+        <button id="exportBtn" class="btn hidden">Export CSV</button>
+        <div id="exportStatus" class="status">Complete all videos to unlock export.</div>
+      </aside>
+
+      <div class="main-panel">
+        <h2 id="videoHeading">Mission 1: Video 1</h2>
+        <div class="player-row">
+          <div style="flex:1;">
+            <video id="videoPlayer" controls crossorigin="anonymous"></video>
+            <div class="player-meta">
+              <div class="muted">Current: <span id="currentTime">00:00:00</span></div>
+              <div class="muted">Duration: <span id="durationTime">00:00:00</span></div>
+              <div class="muted">Seconds: <span id="currentSeconds">0.000</span>s</div>
+            </div>
+            <div class="control-deck">
+              <div class="seek-row">
+                <span class="muted">Seek</span>
+                <input id="customSeek" type="range" min="0" max="0" step="0.01" value="0"/>
+              </div>
+              <div class="seek-row">
+                <span class="muted">Go To</span>
+                <input id="seekTimeInput" type="text" placeholder="HH:MM:SS or seconds"/>
+                <button id="seekGoBtn" class="btn secondary">Jump</button>
+              </div>
+              <div class="control-grid">
+                <button id="btnPlay" class="btn secondary">Play</button>
+                <button id="btnPause" class="btn secondary">Pause</button>
+                <button id="btnBack2" class="btn secondary">-2s</button>
+                <button id="btnFwd2" class="btn secondary">+2s</button>
+                <button id="btnStepBack" class="btn secondary">-0.2s</button>
+                <button id="btnStepFwd" class="btn secondary">+0.2s</button>
+                <button id="btnFrameBack" class="btn secondary">-1f</button>
+                <button id="btnFrameFwd" class="btn secondary">+1f</button>
+                <button id="btnJumpStart" class="btn secondary">Go Start</button>
+                <button id="btnJumpEnd" class="btn secondary">Go End</button>
+                <button id="btnReplaySegment" class="btn secondary">Replay Segment</button>
+                <button id="btnLoopSegment" class="btn secondary">Loop Off</button>
+                <label class="muted" for="speedSelect">Speed</label>
+                <select id="speedSelect" class="speed-select">
+                  <option value="0.5">0.5x</option>
+                  <option value="0.75">0.75x</option>
+                  <option value="1" selected>1.0x</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2">2.0x</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls-col">
+            <div class="row">
+              <button id="setStartBtn" class="btn secondary">Set Start (S)</button>
+              <button id="setEndBtn" class="btn secondary">Set End (E)</button>
+              <button id="clearBtn" class="btn warn">Clear</button>
+            </div>
+
+            <div class="row">
+              <span class="pill">Start: <span id="startLabel">-</span></span>
+              <span class="pill">End: <span id="endLabel">-</span></span>
+            </div>
+
+            <label for="descriptionInput">Annotation Description</label>
+            <textarea id="descriptionInput" placeholder="Describe what happens between Start and End."></textarea>
+            <button id="addAnnotationBtn" class="btn">Add Event</button>
+          </div>
+        </div>
+
+        <div class="guide">
+          <div class="controls-row">
+            <h3 style="margin:0;">Event Log</h3>
+            <span class="badge">Chronological</span>
+          </div>
+          <div id="tableWrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tourOverlay" class="tour-overlay hidden" aria-live="polite">
+      <div id="tourCard" class="tour-card" role="dialog" aria-modal="true" aria-label="Annotation guide tooltip">
+        <div class="tour-step" id="tourStepLabel">Step 1 of 6</div>
+        <h3 id="tourTitle" style="margin:0 0 8px;">Guide</h3>
+        <p id="tourText" class="muted" style="margin:0;"></p>
+        <div class="row" style="justify-content:flex-end; margin-top:12px;">
+          <button id="tourNextBtn" class="btn">Next</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<dialog id="demoDialog">
+  <div class="dialog-body">
+    <div class="row" style="justify-content:space-between;">
+      <h2>Demo: Example Mission Clip and Event Log</h2>
+      <button id="closeDemo" class="btn secondary">Close</button>
+    </div>
+    <video controls crossorigin="anonymous" src="https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/Demo.mp4"></video>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Start</th><th>End</th><th>Duration</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>00:00:00</td><td>00:00:02</td><td>2.000</td><td>The individual emptied a packet of brown beans into a glass jar and closed the lid.</td></tr>
+        <tr><td>2</td><td>00:00:02</td><td>00:00:03</td><td>1.000</td><td>The individual removed the filled glass jar from the wooden table.</td></tr>
+        <tr><td>3</td><td>00:00:03</td><td>00:00:04</td><td>1.000</td><td>The individual placed an empty glass jar on the rounded wooden table.</td></tr>
+        <tr><td>4</td><td>00:00:04</td><td>00:00:09</td><td>5.000</td><td>The individual poured rice from a packet into the empty glass jar and secured the lid.</td></tr>
+        <tr><td>5</td><td>00:00:09</td><td>00:00:10</td><td>1.000</td><td>The individual removed the filled glass jar from the wooden table.</td></tr>
+        <tr><td>6</td><td>00:00:10</td><td>00:14:00</td><td>4.000</td><td>The individual picked up another empty glass jar, filled it with oats, and closed the lid.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</dialog>
+
+<script>
+const videos = [
+  { id: 1, title: "Video 1", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/1.mp4" },
+  { id: 2, title: "Video 2", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/2.mp4" },
+  { id: 3, title: "Video 3", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/3.mp4" },
+  { id: 4, title: "Video 4", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/4.mp4" },
+  { id: 5, title: "Video 5", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/5.mp4" }
+];
+
+const HOME_STORAGE_KEY = "video_annotator_used_emails";
+const PER_VIDEO_SECONDS = 10 * 60;
+
+const state = {
+  participantName: "",
+  participantEmail: "",
+  currentVideoIndex: 0,
+  annotations: videos.map(() => []),
+  videoCompleted: videos.map(() => false),
+  videoDurations: videos.map(() => 0),
+  startTime: null,
+  endTime: null,
+  timerInterval: null,
+  secondsLeft: PER_VIDEO_SECONDS,
+  locked: false,
+  preStartLocked: true,
+  tourActive: false,
+  tourStepIndex: 0,
+  loopSegment: false
+};
+
+const homeSection = document.getElementById("homeSection");
+const annotatorSection = document.getElementById("annotatorSection");
+const nameInput = document.getElementById("nameInput");
+const emailInput = document.getElementById("emailInput");
+const startBtn = document.getElementById("startBtn");
+const demoBtn = document.getElementById("demoBtn");
+const homeStatus = document.getElementById("homeStatus");
+const demoDialog = document.getElementById("demoDialog");
+const closeDemo = document.getElementById("closeDemo");
+
+const userLabel = document.getElementById("userLabel");
+const progressPill = document.getElementById("progressPill");
+const timerLabel = document.getElementById("timerLabel");
+const videoHeading = document.getElementById("videoHeading");
+const videoPlayer = document.getElementById("videoPlayer");
+const currentTime = document.getElementById("currentTime");
+const durationTime = document.getElementById("durationTime");
+const currentSeconds = document.getElementById("currentSeconds");
+const customSeek = document.getElementById("customSeek");
+const seekTimeInput = document.getElementById("seekTimeInput");
+const seekGoBtn = document.getElementById("seekGoBtn");
+const btnPlay = document.getElementById("btnPlay");
+const btnPause = document.getElementById("btnPause");
+const btnBack2 = document.getElementById("btnBack2");
+const btnFwd2 = document.getElementById("btnFwd2");
+const btnStepBack = document.getElementById("btnStepBack");
+const btnStepFwd = document.getElementById("btnStepFwd");
+const btnFrameBack = document.getElementById("btnFrameBack");
+const btnFrameFwd = document.getElementById("btnFrameFwd");
+const btnJumpStart = document.getElementById("btnJumpStart");
+const btnJumpEnd = document.getElementById("btnJumpEnd");
+const btnReplaySegment = document.getElementById("btnReplaySegment");
+const btnLoopSegment = document.getElementById("btnLoopSegment");
+const speedSelect = document.getElementById("speedSelect");
+const setStartBtn = document.getElementById("setStartBtn");
+const setEndBtn = document.getElementById("setEndBtn");
+const clearBtn = document.getElementById("clearBtn");
+const startLabel = document.getElementById("startLabel");
+const endLabel = document.getElementById("endLabel");
+const descriptionInput = document.getElementById("descriptionInput");
+const addAnnotationBtn = document.getElementById("addAnnotationBtn");
+const annotationStatus = document.getElementById("annotationStatus");
+const tableWrap = document.getElementById("tableWrap");
+const nextBtn = document.getElementById("nextBtn");
+const exportBtn = document.getElementById("exportBtn");
+const exportStatus = document.getElementById("exportStatus");
+const missionProgressFill = document.getElementById("missionProgressFill");
+const completedValue = document.getElementById("completedValue");
+const annotationCountValue = document.getElementById("annotationCountValue");
+const tourOverlay = document.getElementById("tourOverlay");
+const tourCard = document.getElementById("tourCard");
+const tourStepLabel = document.getElementById("tourStepLabel");
+const tourTitle = document.getElementById("tourTitle");
+const tourText = document.getElementById("tourText");
+const tourNextBtn = document.getElementById("tourNextBtn");
+
+const tourSteps = [
+  { targetId: "videoPlayer", title: "Video Frame", text: "You could play/pause/replay the video multiple time using seekbar in the video." },
+  { targetId: "customSeek", title: "Seek Bar", text: "Use this additional seek bar to scrub quickly to exact moments in the video." },
+  { targetId: "seekTimeInput", title: "Go-To Time", text: "Type HH:MM:SS or raw seconds and press Jump to seek directly to a precise timestamp." },
+  { targetId: "btnPlay", title: "Play / Pause", text: "Use Play and Pause buttons for precise control while annotating." },
+  { targetId: "btnBack2", title: "Quick Jumps", text: "Use -2s and +2s to jump quickly. Use -0.2s and +0.2s for fine adjustments." },
+  { targetId: "btnFrameFwd", title: "Frame Step", text: "Use -1f and +1f to move one frame at a time for frame-accurate annotation checks." },
+  { targetId: "speedSelect", title: "Video Speed", text: "Change playback speed to review actions in slow motion or faster pass." },
+  { targetId: "btnLoopSegment", title: "Segment Loop", text: "Turn loop on after setting Start and End to keep replaying only that annotation window." },
+  { targetId: "currentSeconds", title: "Running Time (Seconds)", text: "This shows the exact current time in seconds for precise annotation context." },
+  { targetId: "setStartBtn", title: "Set Start", text: "Add the start time for an action." },
+  { targetId: "setEndBtn", title: "Set End", text: "Add the end time for an action." },
+  { targetId: "descriptionInput", title: "Annotation Description", text: "Add the action observed in the video using Add Event button." },
+  { targetId: "btnReplaySegment", title: "Segment Replay", text: "After setting Start and End, replay only that segment to validate your annotation." },
+  { targetId: "tableWrap", title: "Event Log", text: "Shows the annotation captured." },
+  { targetId: "nextBtn", title: "Next Video", text: "Once the annotations are completed, then move to next video." }
+];
+
+startBtn.addEventListener("click", beginSession);
+demoBtn.addEventListener("click", () => demoDialog.showModal());
+closeDemo.addEventListener("click", () => demoDialog.close());
+
+setStartBtn.addEventListener("click", setStart);
+setEndBtn.addEventListener("click", setEnd);
+clearBtn.addEventListener("click", clearTimes);
+addAnnotationBtn.addEventListener("click", addAnnotation);
+nextBtn.addEventListener("click", goNextVideo);
+exportBtn.addEventListener("click", exportCsv);
+tourNextBtn.addEventListener("click", nextTourStep);
+btnPlay.addEventListener("click", () => { if (!state.preStartLocked) videoPlayer.play(); });
+btnPause.addEventListener("click", () => { if (!state.preStartLocked) videoPlayer.pause(); });
+btnBack2.addEventListener("click", () => nudgeTime(-2));
+btnFwd2.addEventListener("click", () => nudgeTime(2));
+btnStepBack.addEventListener("click", () => nudgeTime(-0.2));
+btnStepFwd.addEventListener("click", () => nudgeTime(0.2));
+btnFrameBack.addEventListener("click", () => stepFrame(-1));
+btnFrameFwd.addEventListener("click", () => stepFrame(1));
+btnJumpStart.addEventListener("click", jumpToStartMark);
+btnJumpEnd.addEventListener("click", jumpToEndMark);
+btnReplaySegment.addEventListener("click", replayMarkedSegment);
+btnLoopSegment.addEventListener("click", toggleSegmentLoop);
+customSeek.addEventListener("input", onCustomSeek);
+seekGoBtn.addEventListener("click", seekToTypedTime);
+seekTimeInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    seekToTypedTime();
+  }
+});
+speedSelect.addEventListener("change", onSpeedChange);
+
+videoPlayer.addEventListener("timeupdate", () => {
+  if (state.loopSegment && state.startTime !== null && state.endTime !== null && state.endTime > state.startTime) {
+    if (videoPlayer.currentTime >= state.endTime) {
+      videoPlayer.currentTime = state.startTime;
+      if (videoPlayer.paused) videoPlayer.play();
+    }
+  }
+  currentTime.textContent = formatTimestamp(videoPlayer.currentTime || 0);
+  currentSeconds.textContent = (videoPlayer.currentTime || 0).toFixed(3);
+  customSeek.value = String(videoPlayer.currentTime || 0);
+});
+
+videoPlayer.addEventListener("loadedmetadata", () => {
+  const dur = Number(videoPlayer.duration || 0);
+  state.videoDurations[state.currentVideoIndex] = dur;
+  durationTime.textContent = formatTimestamp(dur);
+  customSeek.max = String(dur);
+  customSeek.value = "0";
+  updateButtonsAndStatus();
+});
+
+document.addEventListener("keydown", (e) => {
+  const active = document.activeElement;
+  const typingTarget = active && (
+    active.tagName === "INPUT" ||
+    active.tagName === "TEXTAREA" ||
+    active.isContentEditable
+  );
+
+  if (e.code === "Space" && !typingTarget && !annotatorSection.classList.contains("hidden")) {
+    if (state.preStartLocked) return;
+    e.preventDefault();
+    if (videoPlayer.paused) videoPlayer.play(); else videoPlayer.pause();
+    return;
+  }
+
+  if (typingTarget) return;
+  if (state.preStartLocked) return;
+  if (annotatorSection.classList.contains("hidden")) return;
+
+  if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    nudgeTime(-1);
+    return;
+  }
+  if (e.key === "ArrowRight") {
+    e.preventDefault();
+    nudgeTime(1);
+    return;
+  }
+  if (e.key === "," || e.key === "<") {
+    e.preventDefault();
+    stepFrame(-1);
+    return;
+  }
+  if (e.key === "." || e.key === ">") {
+    e.preventDefault();
+    stepFrame(1);
+    return;
+  }
+  if (e.key === "l" || e.key === "L") {
+    e.preventDefault();
+    toggleSegmentLoop();
+    return;
+  }
+
+  if (e.key === "s" || e.key === "S") {
+    setStart();
+  }
+  if (e.key === "e" || e.key === "E") {
+    setEnd();
+  }
+});
+
+function beginSession() {
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim().toLowerCase();
+
+  if (!name) {
+    setHomeStatus("Please enter your name.", true);
+    return;
+  }
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+    setHomeStatus("Please enter a valid email address.", true);
+    return;
+  }
+
+  const usedEmails = getUsedEmails();
+  if (usedEmails.includes(email)) {
+    setHomeStatus("This email has already completed an attempt. A second attempt is not allowed.", true);
+    return;
+  }
+
+  state.participantName = name;
+  state.participantEmail = email;
+  markEmailAsUsed(email);
+  userLabel.textContent = `${name} (${email})`;
+  state.preStartLocked = true;
+
+  homeSection.classList.add("hidden");
+  annotatorSection.classList.remove("hidden");
+  annotatorSection.classList.remove("section-enter");
+  requestAnimationFrame(() => annotatorSection.classList.add("section-enter"));
+
+  loadVideo(0);
+  startTour();
+}
+
+function loadVideo(index) {
+  state.currentVideoIndex = index;
+  state.locked = false;
+  state.secondsLeft = PER_VIDEO_SECONDS;
+  clearTimes();
+  descriptionInput.value = "";
+
+  const video = videos[index];
+  progressPill.textContent = `Video ${index + 1} of ${videos.length}`;
+  videoHeading.textContent = `Mission ${index + 1}: ${video.title}`;
+  videoPlayer.src = video.url;
+  videoPlayer.currentTime = 0;
+  currentTime.textContent = "00:00:00";
+  durationTime.textContent = "00:00:00";
+  currentSeconds.textContent = "0.000";
+  customSeek.value = "0";
+  customSeek.max = "0";
+  seekTimeInput.value = "";
+  stopSegmentLoop();
+  updateLoopButton();
+
+  renderAnnotations();
+  updateButtonsAndStatus();
+  updateGameHud();
+  if (state.preStartLocked) {
+    applyPreStartLock(true);
+    if (state.timerInterval) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+    }
+    timerLabel.textContent = formatClock(PER_VIDEO_SECONDS);
+  } else {
+    applyPreStartLock(false);
+    restartTimer();
+  }
+}
+
+function restartTimer() {
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  timerLabel.textContent = formatClock(state.secondsLeft);
+  const timerPill = timerLabel.parentElement;
+  if (timerPill) timerPill.classList.remove("urgent");
+
+  state.timerInterval = setInterval(() => {
+    state.secondsLeft -= 1;
+    timerLabel.textContent = formatClock(Math.max(0, state.secondsLeft));
+    if (timerPill) {
+      if (state.secondsLeft <= 60) timerPill.classList.add("urgent");
+      else timerPill.classList.remove("urgent");
+    }
+
+    if (state.secondsLeft <= 0) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+      state.locked = true;
+      videoPlayer.pause();
+      disableAnnotationInputs(true);
+      annotationStatus.className = "status error";
+      annotationStatus.textContent = "Time is over for this video. Move to the next video.";
+      nextBtn.disabled = false;
+      if (timerPill) timerPill.classList.remove("urgent");
+    }
+  }, 1000);
+}
+
+function applyPreStartLock(locked) {
+  state.preStartLocked = locked;
+  disableAnnotationInputs(locked || state.locked);
+  setExtraPlayerControlsDisabled(locked);
+  videoPlayer.controls = !locked;
+  videoPlayer.classList.toggle("video-blocked", locked);
+  if (locked) {
+    videoPlayer.pause();
+    nextBtn.disabled = true;
+    annotationStatus.className = "status";
+    annotationStatus.textContent = "Complete all tooltips to begin. Timer will start after the final tooltip.";
+  } else {
+    updateButtonsAndStatus();
+  }
+}
+
+function disableAnnotationInputs(disabled) {
+  setStartBtn.disabled = disabled;
+  setEndBtn.disabled = disabled;
+  clearBtn.disabled = disabled;
+  addAnnotationBtn.disabled = disabled;
+  descriptionInput.disabled = disabled;
+}
+
+function setExtraPlayerControlsDisabled(disabled) {
+  btnPlay.disabled = disabled;
+  btnPause.disabled = disabled;
+  btnBack2.disabled = disabled;
+  btnFwd2.disabled = disabled;
+  btnStepBack.disabled = disabled;
+  btnStepFwd.disabled = disabled;
+  btnFrameBack.disabled = disabled;
+  btnFrameFwd.disabled = disabled;
+  btnJumpStart.disabled = disabled;
+  btnJumpEnd.disabled = disabled;
+  btnReplaySegment.disabled = disabled;
+  btnLoopSegment.disabled = disabled;
+  customSeek.disabled = disabled;
+  seekTimeInput.disabled = disabled;
+  seekGoBtn.disabled = disabled;
+  speedSelect.disabled = disabled;
+}
+
+function onCustomSeek() {
+  if (state.preStartLocked) return;
+  videoPlayer.currentTime = Number(customSeek.value || 0);
+}
+
+function onSpeedChange() {
+  const speed = Number(speedSelect.value || 1);
+  videoPlayer.playbackRate = speed;
+}
+
+function stepFrame(direction) {
+  if (state.preStartLocked) return;
+  const fps = 30;
+  nudgeTime((1 / fps) * direction);
+}
+
+function seekToTypedTime() {
+  if (state.preStartLocked) return;
+  const raw = seekTimeInput.value.trim();
+  if (!raw) return;
+  const parsed = parseSeekTime(raw);
+  if (parsed === null) {
+    setAnnotationStatus("Invalid seek format. Use HH:MM:SS, MM:SS, or seconds.", true);
+    return;
+  }
+  const duration = Number(videoPlayer.duration || 0);
+  videoPlayer.currentTime = clamp(parsed, 0, Math.max(duration, 0));
+}
+
+function parseSeekTime(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return null;
+  if (/^\d+(\.\d+)?$/.test(value)) return Number(value);
+
+  const parts = value.split(":");
+  if (parts.length < 2 || parts.length > 3) return null;
+  if (!parts.every((part) => /^\d+(\.\d+)?$/.test(part))) return null;
+
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+  if (parts.length === 2) {
+    minutes = Number(parts[0]);
+    seconds = Number(parts[1]);
+  } else {
+    hours = Number(parts[0]);
+    minutes = Number(parts[1]);
+    seconds = Number(parts[2]);
+  }
+  if (seconds >= 60) return null;
+  if (parts.length === 3 && minutes >= 60) return null;
+  return (hours * 3600) + (minutes * 60) + seconds;
+}
+
+function nudgeTime(deltaSeconds) {
+  if (state.preStartLocked) return;
+  const duration = Number(videoPlayer.duration || 0);
+  const current = Number(videoPlayer.currentTime || 0);
+  const next = clamp(current + deltaSeconds, 0, Math.max(0, duration || 0));
+  videoPlayer.currentTime = next;
+}
+
+function jumpToStartMark() {
+  if (state.preStartLocked || state.startTime === null) return;
+  videoPlayer.currentTime = state.startTime;
+}
+
+function jumpToEndMark() {
+  if (state.preStartLocked || state.endTime === null) return;
+  videoPlayer.currentTime = state.endTime;
+}
+
+function replayMarkedSegment() {
+  if (state.preStartLocked) return;
+  if (state.startTime === null || state.endTime === null || state.endTime <= state.startTime) {
+    setAnnotationStatus("Set valid Start and End to replay the segment.", true);
+    return;
+  }
+  const stopAt = state.endTime;
+  videoPlayer.currentTime = state.startTime;
+  videoPlayer.play();
+
+  const onSegmentUpdate = () => {
+    if (videoPlayer.currentTime >= stopAt) {
+      videoPlayer.pause();
+      videoPlayer.removeEventListener("timeupdate", onSegmentUpdate);
+    }
+  };
+  videoPlayer.addEventListener("timeupdate", onSegmentUpdate);
+}
+
+function toggleSegmentLoop() {
+  if (state.preStartLocked) return;
+  if (state.startTime === null || state.endTime === null || state.endTime <= state.startTime) {
+    setAnnotationStatus("Set valid Start and End before enabling loop.", true);
+    return;
+  }
+  state.loopSegment = !state.loopSegment;
+  updateLoopButton();
+  if (state.loopSegment) {
+    videoPlayer.currentTime = state.startTime;
+    videoPlayer.play();
+    setAnnotationStatus("Segment loop enabled.", false);
+  } else {
+    setAnnotationStatus("Segment loop disabled.", false);
+  }
+}
+
+function stopSegmentLoop() {
+  state.loopSegment = false;
+}
+
+function updateLoopButton() {
+  btnLoopSegment.textContent = state.loopSegment ? "Loop On" : "Loop Off";
+}
+
+function setStart() {
+  if (state.locked || state.preStartLocked) return;
+  state.startTime = Math.floor(Number(videoPlayer.currentTime || 0));
+  startLabel.textContent = formatTimestamp(state.startTime);
+  if (state.loopSegment && (state.endTime === null || state.endTime <= state.startTime)) {
+    stopSegmentLoop();
+    updateLoopButton();
+  }
+}
+
+function setEnd() {
+  if (state.locked || state.preStartLocked) return;
+  state.endTime = Math.floor(Number(videoPlayer.currentTime || 0));
+  endLabel.textContent = formatTimestamp(state.endTime);
+  if (state.loopSegment && state.endTime <= state.startTime) {
+    stopSegmentLoop();
+    updateLoopButton();
+  }
+}
+
+function clearTimes() {
+  state.startTime = null;
+  state.endTime = null;
+  startLabel.textContent = "-";
+  endLabel.textContent = "-";
+  stopSegmentLoop();
+  updateLoopButton();
+}
+
+function addAnnotation() {
+  if (state.locked || state.preStartLocked) return;
+
+  const text = descriptionInput.value.trim();
+  if (state.startTime === null || state.endTime === null) {
+    setAnnotationStatus("Set both Start and End before adding an annotation.", true);
+    return;
+  }
+  if (state.endTime <= state.startTime) {
+    setAnnotationStatus("End time must be greater than Start time.", true);
+    return;
+  }
+  if (!text) {
+    setAnnotationStatus("Please enter a description.", true);
+    return;
+  }
+
+  state.annotations[state.currentVideoIndex].push({
+    id: Date.now() + Math.random(),
+    start: state.startTime,
+    end: state.endTime,
+    description: text
+  });
+
+  descriptionInput.value = "";
+  clearTimes();
+  renderAnnotations();
+  setAnnotationStatus("Event captured. Great work. You can proceed or add more detail.", false);
+  updateButtonsAndStatus();
+  updateGameHud();
+}
+
+function renderAnnotations() {
+  const list = state.annotations[state.currentVideoIndex];
+
+  if (!list.length) {
+    tableWrap.innerHTML = "<div class='muted'>No annotations yet for this video.</div>";
+    return;
+  }
+
+  let html = "<table class='table-enter'><thead><tr><th>#</th><th>Start</th><th>End</th><th>Duration</th><th>Description</th><th>Actions</th></tr></thead><tbody>";
+  list.forEach((item, idx) => {
+    html += `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${formatTimestamp(item.start)}</td>
+        <td>${formatTimestamp(item.end)}</td>
+        <td>${(item.end - item.start).toFixed(3)}</td>
+        <td>${escapeHtml(item.description)}</td>
+        <td>
+          <button class="btn secondary" onclick="jumpTo(${item.start})">Jump</button>
+          <button class="btn warn" onclick="removeAnnotation(${item.id})">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+  html += "</tbody></table>";
+  tableWrap.innerHTML = html;
+}
+
+window.jumpTo = function(seconds) {
+  if (state.preStartLocked) return;
+  videoPlayer.currentTime = seconds;
+  videoPlayer.play();
+};
+
+window.removeAnnotation = function(id) {
+  const list = state.annotations[state.currentVideoIndex];
+  const idx = list.findIndex((x) => x.id === id);
+  if (idx === -1) return;
+  list.splice(idx, 1);
+  renderAnnotations();
+  updateButtonsAndStatus();
+  updateGameHud();
+};
+
+function updateButtonsAndStatus() {
+  const currentList = state.annotations[state.currentVideoIndex];
+  const hasCurrentAnnotations = currentList.length > 0;
+
+  nextBtn.disabled = state.preStartLocked || (!hasCurrentAnnotations && !state.locked);
+
+  if (state.locked) {
+    disableAnnotationInputs(true);
+  } else {
+    disableAnnotationInputs(false);
+    if (hasCurrentAnnotations) {
+      setAnnotationStatus("At least one annotation added. You can move to the next video.", false);
+    } else {
+      setAnnotationStatus("Add at least one annotation to enable Next Video.", false);
+    }
+  }
+
+  const allDone = state.videoCompleted.every(Boolean);
+  if (allDone) {
+    exportBtn.classList.remove("hidden");
+    exportStatus.className = "status ok";
+    exportStatus.textContent = "All missions complete. Export CSV is unlocked.";
+  } else {
+    exportBtn.classList.add("hidden");
+    exportStatus.className = "status";
+    exportStatus.textContent = "Complete all missions to unlock export.";
+  }
+
+  updateGameHud();
+}
+
+function goNextVideo() {
+  if (state.preStartLocked) return;
+  state.videoCompleted[state.currentVideoIndex] = true;
+
+  if (state.currentVideoIndex < videos.length - 1) {
+    loadVideo(state.currentVideoIndex + 1);
+    return;
+  }
+
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+  state.locked = true;
+  disableAnnotationInputs(true);
+  nextBtn.disabled = true;
+  updateButtonsAndStatus();
+  updateGameHud();
+}
+
+function exportCsv() {
+  if (!state.videoCompleted.every(Boolean)) return;
+
+  const lines = [];
+  lines.push(`Name,${csvCell(state.participantName)}`);
+  lines.push(`Email,${csvCell(state.participantEmail)}`);
+  lines.push("");
+
+  videos.forEach((video, vIdx) => {
+    lines.push(`Video ${vIdx + 1}`);
+    lines.push("#,Start,End,Duration,Description");
+
+    const list = state.annotations[vIdx];
+    list.forEach((ann, idx) => {
+      lines.push([
+        idx + 1,
+        formatTimestamp(ann.start),
+        formatTimestamp(ann.end),
+        (ann.end - ann.start).toFixed(3),
+        csvCell(ann.description)
+      ].join(","));
+    });
+
+    if (!list.length) {
+      lines.push("(no annotations),,,,");
+    }
+
+    lines.push("");
+  });
+
+  const csvData = lines.join("\n");
+  const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const safeName = state.participantName.trim().replace(/\s+/g, "_");
+  const fileName = `${safeName}_${state.participantEmail}.csv`;
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  exportStatus.className = "status ok";
+  exportStatus.textContent = "CSV exported. Mission session closed for this email.";
+}
+
+function setHomeStatus(msg, isError) {
+  homeStatus.textContent = msg;
+  homeStatus.className = isError ? "status error" : "status";
+}
+
+function setAnnotationStatus(msg, isError) {
+  annotationStatus.textContent = msg;
+  annotationStatus.className = isError ? "status error" : "status";
+}
+
+function getUsedEmails() {
+  try {
+    const raw = localStorage.getItem(HOME_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function markEmailAsUsed(email) {
+  const used = getUsedEmails();
+  if (!used.includes(email)) {
+    used.push(email);
+    localStorage.setItem(HOME_STORAGE_KEY, JSON.stringify(used));
+  }
+}
+
+function updateGameHud() {
+  const completed = state.videoCompleted.filter(Boolean).length;
+  const currentVideoAnnotations = state.annotations[state.currentVideoIndex].length;
+  const progressPercent = Math.round((completed / videos.length) * 100);
+
+  completedValue.textContent = `${completed} / ${videos.length}`;
+  annotationCountValue.textContent = String(currentVideoAnnotations);
+  missionProgressFill.style.width = `${progressPercent}%`;
+}
+
+function startTour() {
+  state.tourActive = true;
+  state.tourStepIndex = 0;
+  tourOverlay.classList.remove("hidden");
+  showTourStep();
+}
+
+function nextTourStep() {
+  clearTourFocus();
+  state.tourStepIndex += 1;
+  if (state.tourStepIndex >= tourSteps.length) {
+    finishTour();
+    return;
+  }
+  showTourStep();
+}
+
+function showTourStep() {
+  const step = tourSteps[state.tourStepIndex];
+  const el = document.getElementById(step.targetId);
+  const total = tourSteps.length;
+  tourStepLabel.textContent = `Step ${state.tourStepIndex + 1} of ${total}`;
+  tourTitle.textContent = step.title;
+  tourText.textContent = step.text;
+  tourNextBtn.textContent = state.tourStepIndex === total - 1 ? "Finish Guide" : "Next";
+
+  if (!el) {
+    tourCard.style.left = "16px";
+    tourCard.style.top = "16px";
+    return;
+  }
+
+  el.classList.add("tour-focus");
+  const rect = el.getBoundingClientRect();
+  const sectionRect = annotatorSection.getBoundingClientRect();
+  const cardRectNow = tourCard.getBoundingClientRect();
+  const cardWidth = Math.ceil(cardRectNow.width || Math.min(360, Math.max(260, window.innerWidth - 24)));
+  const cardHeight = Math.ceil(cardRectNow.height || Math.min(tourCard.scrollHeight || 260, Math.max(220, window.innerHeight - 24)));
+  const gap = 12;
+  const boundsMinX = Math.max(12, sectionRect.left + 12);
+  const boundsMaxX = Math.min(window.innerWidth - 12, sectionRect.right - 12);
+  const boundsMinY = Math.max(12, sectionRect.top + 12);
+  const boundsMaxY = Math.min(window.innerHeight - 12, sectionRect.bottom - 12);
+
+  const preferredTop = rect.top + (rect.height / 2) - (cardHeight / 2);
+  const preferredLeft = rect.left + (rect.width / 2) - (cardWidth / 2);
+
+  let candidates = [
+    { left: rect.right + gap, top: preferredTop }, // right
+    { left: rect.left - cardWidth - gap, top: preferredTop }, // left
+    { left: preferredLeft, top: rect.bottom + gap }, // below
+    { left: preferredLeft, top: rect.top - cardHeight - gap } // above
+  ];
+  // Keep Set End tooltip away from the button itself by preferring lower placements.
+  if (step.targetId === "setEndBtn") {
+    candidates = [
+      { left: preferredLeft, top: rect.bottom + gap }, // below
+      { left: rect.right + gap, top: preferredTop }, // right
+      { left: rect.left - cardWidth - gap, top: preferredTop }, // left
+      { left: preferredLeft, top: rect.top - cardHeight - gap } // above
+    ];
+  }
+
+  const overlapsTarget = (pos) => {
+    const cardRect = {
+      left: pos.left,
+      right: pos.left + cardWidth,
+      top: pos.top,
+      bottom: pos.top + cardHeight
+    };
+    return !(
+      cardRect.right <= rect.left ||
+      cardRect.left >= rect.right ||
+      cardRect.bottom <= rect.top ||
+      cardRect.top >= rect.bottom
+    );
+  };
+
+  const fits = (pos) =>
+    pos.left >= boundsMinX &&
+    (pos.left + cardWidth) <= boundsMaxX &&
+    pos.top >= boundsMinY &&
+    (pos.top + cardHeight) <= boundsMaxY &&
+    !overlapsTarget(pos);
+
+  const chosen = candidates.find(fits);
+  let left;
+  let top;
+  if (chosen) {
+    left = chosen.left;
+    top = chosen.top;
+  } else {
+    left = clamp(preferredLeft, boundsMinX, Math.max(boundsMinX, boundsMaxX - cardWidth));
+    top = clamp(preferredTop, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
+    // Final safety: if fallback overlaps target, push below or above target.
+    if (overlapsTarget({ left, top })) {
+      const downTop = clamp(rect.bottom + gap, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
+      const upTop = clamp(rect.top - cardHeight - gap, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
+      top = downTop;
+      if (overlapsTarget({ left, top })) {
+        top = upTop;
+      }
+    }
+  }
+
+  tourCard.style.left = `${left}px`;
+  tourCard.style.top = `${top}px`;
+}
+
+function clearTourFocus() {
+  document.querySelectorAll(".tour-focus").forEach((el) => el.classList.remove("tour-focus"));
+}
+
+function finishTour() {
+  clearTourFocus();
+  state.tourActive = false;
+  tourOverlay.classList.add("hidden");
+  applyPreStartLock(false);
+  state.secondsLeft = PER_VIDEO_SECONDS;
+  restartTimer();
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function formatClock(totalSeconds) {
+  return formatHms(totalSeconds);
+}
+
+function formatTimestamp(totalSeconds) {
+  const s = Math.max(0, Number(totalSeconds || 0));
+  const hrs = Math.floor(s / 3600);
+  const mins = Math.floor(s / 60);
+  const secs = Math.floor(s % 60);
+  return `${String(hrs).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+function formatHms(totalSeconds) {
+  const s = Math.max(0, Number(totalSeconds || 0));
+  const hrs = Math.floor(s / 3600);
+  const mins = Math.floor((s % 3600) / 60);
+  const secs = Math.floor(s % 60);
+  return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+function csvCell(value) {
+  const val = String(value ?? "").replace(/"/g, '""');
+  return `"${val}"`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[ch]));
+}
+</script>
+</body>
+</html>
