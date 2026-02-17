@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -149,7 +149,7 @@
     background:#000;
     border-radius:12px;
     border:1px solid rgba(255,255,255,0.18);
-    max-height:460px;
+    max-height:560px;
   }
 
   table{
@@ -542,6 +542,7 @@
         </div>
         <div id="annotationStatus" class="status">Add at least one annotation to enable Next Video.</div>
 
+
         <div class="divider"></div>
 
         <button id="nextBtn" class="btn" disabled>Next Video</button>
@@ -553,7 +554,7 @@
         <h2 id="videoHeading">Mission 1: Video 1</h2>
         <div class="player-row">
           <div style="flex:1;">
-            <video id="videoPlayer" controls crossorigin="anonymous"></video>
+            <video id="videoPlayer" crossorigin="anonymous"></video>
             <div class="player-meta">
               <div class="muted">Current: <span id="currentTime">00:00:00</span></div>
               <div class="muted">Duration: <span id="durationTime">00:00:00</span></div>
@@ -564,34 +565,19 @@
                 <span class="muted">Seek</span>
                 <input id="customSeek" type="range" min="0" max="0" step="0.01" value="0"/>
               </div>
-              <div class="seek-row">
-                <span class="muted">Go To</span>
-                <input id="seekTimeInput" type="text" placeholder="HH:MM:SS or seconds"/>
-                <button id="seekGoBtn" class="btn secondary">Jump</button>
-              </div>
               <div class="control-grid">
-                <button id="btnPlay" class="btn secondary">Play</button>
-                <button id="btnPause" class="btn secondary">Pause</button>
-                <button id="btnBack2" class="btn secondary">-2s</button>
-                <button id="btnFwd2" class="btn secondary">+2s</button>
-                <button id="btnStepBack" class="btn secondary">-0.2s</button>
-                <button id="btnStepFwd" class="btn secondary">+0.2s</button>
-                <button id="btnFrameBack" class="btn secondary">-1f</button>
-                <button id="btnFrameFwd" class="btn secondary">+1f</button>
-                <button id="btnJumpStart" class="btn secondary">Go Start</button>
-                <button id="btnJumpEnd" class="btn secondary">Go End</button>
-                <button id="btnReplaySegment" class="btn secondary">Replay Segment</button>
-                <button id="btnLoopSegment" class="btn secondary">Loop Off</button>
-                <label class="muted" for="speedSelect">Speed</label>
-                <select id="speedSelect" class="speed-select">
-                  <option value="0.5">0.5x</option>
-                  <option value="0.75">0.75x</option>
-                  <option value="1" selected>1.0x</option>
-                  <option value="1.25">1.25x</option>
-                  <option value="1.5">1.5x</option>
-                  <option value="2">2.0x</option>
-                </select>
-              </div>
+                  <button id="btnPlay" class="btn secondary">Play</button>
+                  <button id="btnPause" class="btn secondary">Pause</button>
+                  <label class="muted" for="speedSelect">Speed</label>
+                  <select id="speedSelect" class="speed-select">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1" selected>1.0x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2.0x</option>
+                  </select>
+                </div>
             </div>
           </div>
 
@@ -610,6 +596,7 @@
             <label for="descriptionInput">Annotation Description</label>
             <textarea id="descriptionInput" placeholder="Describe what happens between Start and End."></textarea>
             <button id="addAnnotationBtn" class="btn">Add Event</button>
+
           </div>
         </div>
 
@@ -623,11 +610,13 @@
       </div>
     </div>
 
+    
+
     <div id="tourOverlay" class="tour-overlay hidden" aria-live="polite">
       <div id="tourCard" class="tour-card" role="dialog" aria-modal="true" aria-label="Annotation guide tooltip">
-        <div class="tour-step" id="tourStepLabel">Step 1 of 6</div>
+        <div class="tour-step" id="tourStepLabel">Step 1 of 3</div>
         <h3 id="tourTitle" style="margin:0 0 8px;">Guide</h3>
-        <p id="tourText" class="muted" style="margin:0;"></p>
+        <p id="tourText" class="muted" style="margin:0;">Complete this short guide to start the timer.</p>
         <div class="row" style="justify-content:flex-end; margin-top:12px;">
           <button id="tourNextBtn" class="btn">Next</button>
         </div>
@@ -642,7 +631,7 @@
       <h2>Demo: Example Mission Clip and Event Log</h2>
       <button id="closeDemo" class="btn secondary">Close</button>
     </div>
-    <video controls crossorigin="anonymous" src="https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/Demo.mp4"></video>
+    <video id="demoVideo" controls crossorigin="anonymous" src="https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/Demo.mp4"></video>
     <table>
       <thead>
         <tr><th>#</th><th>Start</th><th>End</th><th>Duration</th><th>Description</th></tr>
@@ -687,6 +676,7 @@ const state = {
   tourActive: false,
   tourStepIndex: 0,
   loopSegment: false
+  , demoSeen: false
 };
 
 const homeSection = document.getElementById("homeSection");
@@ -698,6 +688,7 @@ const demoBtn = document.getElementById("demoBtn");
 const homeStatus = document.getElementById("homeStatus");
 const demoDialog = document.getElementById("demoDialog");
 const closeDemo = document.getElementById("closeDemo");
+const demoVideo = document.getElementById("demoVideo");
 
 const userLabel = document.getElementById("userLabel");
 const progressPill = document.getElementById("progressPill");
@@ -708,20 +699,8 @@ const currentTime = document.getElementById("currentTime");
 const durationTime = document.getElementById("durationTime");
 const currentSeconds = document.getElementById("currentSeconds");
 const customSeek = document.getElementById("customSeek");
-const seekTimeInput = document.getElementById("seekTimeInput");
-const seekGoBtn = document.getElementById("seekGoBtn");
 const btnPlay = document.getElementById("btnPlay");
 const btnPause = document.getElementById("btnPause");
-const btnBack2 = document.getElementById("btnBack2");
-const btnFwd2 = document.getElementById("btnFwd2");
-const btnStepBack = document.getElementById("btnStepBack");
-const btnStepFwd = document.getElementById("btnStepFwd");
-const btnFrameBack = document.getElementById("btnFrameBack");
-const btnFrameFwd = document.getElementById("btnFrameFwd");
-const btnJumpStart = document.getElementById("btnJumpStart");
-const btnJumpEnd = document.getElementById("btnJumpEnd");
-const btnReplaySegment = document.getElementById("btnReplaySegment");
-const btnLoopSegment = document.getElementById("btnLoopSegment");
 const speedSelect = document.getElementById("speedSelect");
 const setStartBtn = document.getElementById("setStartBtn");
 const setEndBtn = document.getElementById("setEndBtn");
@@ -746,26 +725,28 @@ const tourText = document.getElementById("tourText");
 const tourNextBtn = document.getElementById("tourNextBtn");
 
 const tourSteps = [
-  { targetId: "videoPlayer", title: "Video Frame", text: "You could play/pause/replay the video multiple time using seekbar in the video." },
-  { targetId: "customSeek", title: "Seek Bar", text: "Use this additional seek bar to scrub quickly to exact moments in the video." },
-  { targetId: "seekTimeInput", title: "Go-To Time", text: "Type HH:MM:SS or raw seconds and press Jump to seek directly to a precise timestamp." },
-  { targetId: "btnPlay", title: "Play / Pause", text: "Use Play and Pause buttons for precise control while annotating." },
-  { targetId: "btnBack2", title: "Quick Jumps", text: "Use -2s and +2s to jump quickly. Use -0.2s and +0.2s for fine adjustments." },
-  { targetId: "btnFrameFwd", title: "Frame Step", text: "Use -1f and +1f to move one frame at a time for frame-accurate annotation checks." },
-  { targetId: "speedSelect", title: "Video Speed", text: "Change playback speed to review actions in slow motion or faster pass." },
-  { targetId: "btnLoopSegment", title: "Segment Loop", text: "Turn loop on after setting Start and End to keep replaying only that annotation window." },
-  { targetId: "currentSeconds", title: "Running Time (Seconds)", text: "This shows the exact current time in seconds for precise annotation context." },
-  { targetId: "setStartBtn", title: "Set Start", text: "Add the start time for an action." },
-  { targetId: "setEndBtn", title: "Set End", text: "Add the end time for an action." },
-  { targetId: "descriptionInput", title: "Annotation Description", text: "Add the action observed in the video using Add Event button." },
-  { targetId: "btnReplaySegment", title: "Segment Replay", text: "After setting Start and End, replay only that segment to validate your annotation." },
-  { targetId: "tableWrap", title: "Event Log", text: "Shows the annotation captured." },
-  { targetId: "nextBtn", title: "Next Video", text: "Once the annotations are completed, then move to next video." }
+  { title: 'Left Panel', text: 'Displays the current status of annotations. Shows videos viewed and the timer. Provides an option to move to the next video.' },
+  { title: 'Right Panel', text: 'Contains controls and options for adding annotations. Allows setting the start and end time of an action in the video and labeling it accordingly.' },
+  { title: 'Main Panel', text: 'Hosts the video player with controls to play, pause, and replay the video.' }
 ];
 
 startBtn.addEventListener("click", beginSession);
-demoBtn.addEventListener("click", () => demoDialog.showModal());
-closeDemo.addEventListener("click", () => demoDialog.close());
+demoBtn.addEventListener("click", () => {
+  // If demo already seen once, go directly to annotator main page
+  if (state.demoSeen) {
+    homeSection.classList.add('hidden');
+    annotatorSection.classList.remove('hidden');
+    loadVideo(0);
+    return;
+  }
+  demoDialog.showModal();
+  try { demoVideo.currentTime = 0; demoVideo.play(); } catch (e) {}
+  state.demoSeen = true;
+});
+closeDemo.addEventListener("click", () => {
+  try { demoVideo.pause(); demoVideo.currentTime = 0; } catch (e) {}
+  demoDialog.close();
+});
 
 setStartBtn.addEventListener("click", setStart);
 setEndBtn.addEventListener("click", setEnd);
@@ -773,28 +754,14 @@ clearBtn.addEventListener("click", clearTimes);
 addAnnotationBtn.addEventListener("click", addAnnotation);
 nextBtn.addEventListener("click", goNextVideo);
 exportBtn.addEventListener("click", exportCsv);
-tourNextBtn.addEventListener("click", nextTourStep);
 btnPlay.addEventListener("click", () => { if (!state.preStartLocked) videoPlayer.play(); });
 btnPause.addEventListener("click", () => { if (!state.preStartLocked) videoPlayer.pause(); });
-btnBack2.addEventListener("click", () => nudgeTime(-2));
-btnFwd2.addEventListener("click", () => nudgeTime(2));
-btnStepBack.addEventListener("click", () => nudgeTime(-0.2));
-btnStepFwd.addEventListener("click", () => nudgeTime(0.2));
-btnFrameBack.addEventListener("click", () => stepFrame(-1));
-btnFrameFwd.addEventListener("click", () => stepFrame(1));
-btnJumpStart.addEventListener("click", jumpToStartMark);
-btnJumpEnd.addEventListener("click", jumpToEndMark);
-btnReplaySegment.addEventListener("click", replayMarkedSegment);
-btnLoopSegment.addEventListener("click", toggleSegmentLoop);
 customSeek.addEventListener("input", onCustomSeek);
-seekGoBtn.addEventListener("click", seekToTypedTime);
-seekTimeInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    seekToTypedTime();
-  }
-});
 speedSelect.addEventListener("change", onSpeedChange);
+
+tourNextBtn.addEventListener('click', () => {
+  nextTourStep();
+});
 
 videoPlayer.addEventListener("timeupdate", () => {
   if (state.loopSegment && state.startTime !== null && state.endTime !== null && state.endTime > state.startTime) {
@@ -921,7 +888,6 @@ function loadVideo(index) {
   currentSeconds.textContent = "0.000";
   customSeek.value = "0";
   customSeek.max = "0";
-  seekTimeInput.value = "";
   stopSegmentLoop();
   updateLoopButton();
 
@@ -973,13 +939,14 @@ function applyPreStartLock(locked) {
   state.preStartLocked = locked;
   disableAnnotationInputs(locked || state.locked);
   setExtraPlayerControlsDisabled(locked);
-  videoPlayer.controls = !locked;
+  // Use only custom controls (seek, play, pause, speed) regardless of lock state
+  videoPlayer.controls = false;
   videoPlayer.classList.toggle("video-blocked", locked);
-  if (locked) {
+    if (locked) {
     videoPlayer.pause();
     nextBtn.disabled = true;
     annotationStatus.className = "status";
-    annotationStatus.textContent = "Complete all tooltips to begin. Timer will start after the final tooltip.";
+    annotationStatus.textContent = "Complete the short guide to begin. Timer will start after the guide.";
   } else {
     updateButtonsAndStatus();
   }
@@ -994,22 +961,9 @@ function disableAnnotationInputs(disabled) {
 }
 
 function setExtraPlayerControlsDisabled(disabled) {
-  btnPlay.disabled = disabled;
-  btnPause.disabled = disabled;
-  btnBack2.disabled = disabled;
-  btnFwd2.disabled = disabled;
-  btnStepBack.disabled = disabled;
-  btnStepFwd.disabled = disabled;
-  btnFrameBack.disabled = disabled;
-  btnFrameFwd.disabled = disabled;
-  btnJumpStart.disabled = disabled;
-  btnJumpEnd.disabled = disabled;
-  btnReplaySegment.disabled = disabled;
-  btnLoopSegment.disabled = disabled;
-  customSeek.disabled = disabled;
-  seekTimeInput.disabled = disabled;
-  seekGoBtn.disabled = disabled;
-  speedSelect.disabled = disabled;
+  [btnPlay, btnPause].forEach((el) => { if (el) el.disabled = disabled; });
+  if (customSeek) customSeek.disabled = disabled;
+  if (speedSelect) speedSelect.disabled = disabled;
 }
 
 function onCustomSeek() {
@@ -1022,49 +976,114 @@ function onSpeedChange() {
   videoPlayer.playbackRate = speed;
 }
 
+function startTour() {
+  state.tourActive = true;
+  state.tourStepIndex = 0;
+  if (tourOverlay) tourOverlay.classList.remove('hidden');
+  showTourStep();
+}
+
+function nextTourStep() {
+  state.tourStepIndex += 1;
+  if (state.tourStepIndex >= tourSteps.length) {
+    finishTour();
+    return;
+  }
+  showTourStep();
+}
+
+function showTourStep() {
+  const idx = state.tourStepIndex || 0;
+  const step = tourSteps[idx];
+  const total = tourSteps.length;
+  if (tourStepLabel) tourStepLabel.textContent = `Step ${idx + 1} of ${total}`;
+  if (tourTitle) tourTitle.textContent = step.title;
+  if (tourText) tourText.textContent = step.text;
+  if (tourNextBtn) tourNextBtn.textContent = idx === total - 1 ? 'Finish Guide' : 'Next';
+
+  // Clear previous focus
+  clearTourFocus();
+
+  // Determine target element for this step (Left panel, Right panel, Main video)
+  let selector = null;
+  if (idx === 0) selector = '.side-panel';
+  else if (idx === 1) selector = '.controls-col';
+  else if (idx === 2) selector = '#videoPlayer';
+
+  const el = selector ? document.querySelector(selector) : null;
+  if (!el || !tourCard) {
+    // center card if missing target
+    tourCard.style.left = '16px';
+    tourCard.style.top = '16px';
+    return;
+  }
+
+  el.classList.add('tour-focus');
+  const rect = el.getBoundingClientRect();
+  const sectionRect = annotatorSection.getBoundingClientRect();
+  const cardRectNow = tourCard.getBoundingClientRect();
+  const cardWidth = Math.ceil(cardRectNow.width || Math.min(360, Math.max(260, window.innerWidth - 24)));
+  const cardHeight = Math.ceil(cardRectNow.height || Math.min(tourCard.scrollHeight || 200, Math.max(160, window.innerHeight - 24)));
+  const gap = 12;
+  const boundsMinX = Math.max(12, sectionRect.left + 12);
+  const boundsMaxX = Math.min(window.innerWidth - 12, sectionRect.right - 12);
+  const boundsMinY = Math.max(12, sectionRect.top + 12);
+  const boundsMaxY = Math.min(window.innerHeight - 12, sectionRect.bottom - 12);
+
+  const preferredTop = rect.top + (rect.height / 2) - (cardHeight / 2);
+  const preferredLeft = rect.left + (rect.width / 2) - (cardWidth / 2);
+
+  const candidates = [
+    { left: rect.right + gap, top: preferredTop }, // right
+    { left: rect.left - cardWidth - gap, top: preferredTop }, // left
+    { left: preferredLeft, top: rect.bottom + gap }, // below
+    { left: preferredLeft, top: rect.top - cardHeight - gap } // above
+  ];
+
+  const overlapsTarget = (pos) => {
+    const cardRect = { left: pos.left, right: pos.left + cardWidth, top: pos.top, bottom: pos.top + cardHeight };
+    return !(cardRect.right <= rect.left || cardRect.left >= rect.right || cardRect.bottom <= rect.top || cardRect.top >= rect.bottom);
+  };
+
+  const fits = (pos) => pos.left >= boundsMinX && (pos.left + cardWidth) <= boundsMaxX && pos.top >= boundsMinY && (pos.top + cardHeight) <= boundsMaxY && !overlapsTarget(pos);
+
+  const chosen = candidates.find(fits);
+  let left, top;
+  if (chosen) { left = chosen.left; top = chosen.top; }
+  else {
+    left = clamp(preferredLeft, boundsMinX, Math.max(boundsMinX, boundsMaxX - cardWidth));
+    top = clamp(preferredTop, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
+    if (overlapsTarget({ left, top })) {
+      const downTop = clamp(rect.bottom + gap, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
+      const upTop = clamp(rect.top - cardHeight - gap, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
+      top = downTop;
+      if (overlapsTarget({ left, top })) top = upTop;
+    }
+  }
+
+  tourCard.style.left = `${left}px`;
+  tourCard.style.top = `${top}px`;
+}
+
+function clearTourFocus() {
+  document.querySelectorAll('.tour-focus').forEach((n) => n.classList.remove('tour-focus'));
+}
+
+function finishTour() {
+  state.tourActive = false;
+  if (tourOverlay) tourOverlay.classList.add('hidden');
+  applyPreStartLock(false);
+  state.secondsLeft = PER_VIDEO_SECONDS;
+  restartTimer();
+}
+
 function stepFrame(direction) {
   if (state.preStartLocked) return;
   const fps = 30;
   nudgeTime((1 / fps) * direction);
 }
 
-function seekToTypedTime() {
-  if (state.preStartLocked) return;
-  const raw = seekTimeInput.value.trim();
-  if (!raw) return;
-  const parsed = parseSeekTime(raw);
-  if (parsed === null) {
-    setAnnotationStatus("Invalid seek format. Use HH:MM:SS, MM:SS, or seconds.", true);
-    return;
-  }
-  const duration = Number(videoPlayer.duration || 0);
-  videoPlayer.currentTime = clamp(parsed, 0, Math.max(duration, 0));
-}
 
-function parseSeekTime(raw) {
-  const value = String(raw || "").trim();
-  if (!value) return null;
-  if (/^\d+(\.\d+)?$/.test(value)) return Number(value);
-
-  const parts = value.split(":");
-  if (parts.length < 2 || parts.length > 3) return null;
-  if (!parts.every((part) => /^\d+(\.\d+)?$/.test(part))) return null;
-
-  let hours = 0;
-  let minutes = 0;
-  let seconds = 0;
-  if (parts.length === 2) {
-    minutes = Number(parts[0]);
-    seconds = Number(parts[1]);
-  } else {
-    hours = Number(parts[0]);
-    minutes = Number(parts[1]);
-    seconds = Number(parts[2]);
-  }
-  if (seconds >= 60) return null;
-  if (parts.length === 3 && minutes >= 60) return null;
-  return (hours * 3600) + (minutes * 60) + seconds;
-}
 
 function nudgeTime(deltaSeconds) {
   if (state.preStartLocked) return;
@@ -1125,7 +1144,9 @@ function stopSegmentLoop() {
 }
 
 function updateLoopButton() {
-  btnLoopSegment.textContent = state.loopSegment ? "Loop On" : "Loop Off";
+  if (typeof btnLoopSegment !== 'undefined' && btnLoopSegment) {
+    btnLoopSegment.textContent = state.loopSegment ? "Loop On" : "Loop Off";
+  }
 }
 
 function setStart() {
@@ -1372,127 +1393,7 @@ function updateGameHud() {
   missionProgressFill.style.width = `${progressPercent}%`;
 }
 
-function startTour() {
-  state.tourActive = true;
-  state.tourStepIndex = 0;
-  tourOverlay.classList.remove("hidden");
-  showTourStep();
-}
 
-function nextTourStep() {
-  clearTourFocus();
-  state.tourStepIndex += 1;
-  if (state.tourStepIndex >= tourSteps.length) {
-    finishTour();
-    return;
-  }
-  showTourStep();
-}
-
-function showTourStep() {
-  const step = tourSteps[state.tourStepIndex];
-  const el = document.getElementById(step.targetId);
-  const total = tourSteps.length;
-  tourStepLabel.textContent = `Step ${state.tourStepIndex + 1} of ${total}`;
-  tourTitle.textContent = step.title;
-  tourText.textContent = step.text;
-  tourNextBtn.textContent = state.tourStepIndex === total - 1 ? "Finish Guide" : "Next";
-
-  if (!el) {
-    tourCard.style.left = "16px";
-    tourCard.style.top = "16px";
-    return;
-  }
-
-  el.classList.add("tour-focus");
-  const rect = el.getBoundingClientRect();
-  const sectionRect = annotatorSection.getBoundingClientRect();
-  const cardRectNow = tourCard.getBoundingClientRect();
-  const cardWidth = Math.ceil(cardRectNow.width || Math.min(360, Math.max(260, window.innerWidth - 24)));
-  const cardHeight = Math.ceil(cardRectNow.height || Math.min(tourCard.scrollHeight || 260, Math.max(220, window.innerHeight - 24)));
-  const gap = 12;
-  const boundsMinX = Math.max(12, sectionRect.left + 12);
-  const boundsMaxX = Math.min(window.innerWidth - 12, sectionRect.right - 12);
-  const boundsMinY = Math.max(12, sectionRect.top + 12);
-  const boundsMaxY = Math.min(window.innerHeight - 12, sectionRect.bottom - 12);
-
-  const preferredTop = rect.top + (rect.height / 2) - (cardHeight / 2);
-  const preferredLeft = rect.left + (rect.width / 2) - (cardWidth / 2);
-
-  let candidates = [
-    { left: rect.right + gap, top: preferredTop }, // right
-    { left: rect.left - cardWidth - gap, top: preferredTop }, // left
-    { left: preferredLeft, top: rect.bottom + gap }, // below
-    { left: preferredLeft, top: rect.top - cardHeight - gap } // above
-  ];
-  // Keep Set End tooltip away from the button itself by preferring lower placements.
-  if (step.targetId === "setEndBtn") {
-    candidates = [
-      { left: preferredLeft, top: rect.bottom + gap }, // below
-      { left: rect.right + gap, top: preferredTop }, // right
-      { left: rect.left - cardWidth - gap, top: preferredTop }, // left
-      { left: preferredLeft, top: rect.top - cardHeight - gap } // above
-    ];
-  }
-
-  const overlapsTarget = (pos) => {
-    const cardRect = {
-      left: pos.left,
-      right: pos.left + cardWidth,
-      top: pos.top,
-      bottom: pos.top + cardHeight
-    };
-    return !(
-      cardRect.right <= rect.left ||
-      cardRect.left >= rect.right ||
-      cardRect.bottom <= rect.top ||
-      cardRect.top >= rect.bottom
-    );
-  };
-
-  const fits = (pos) =>
-    pos.left >= boundsMinX &&
-    (pos.left + cardWidth) <= boundsMaxX &&
-    pos.top >= boundsMinY &&
-    (pos.top + cardHeight) <= boundsMaxY &&
-    !overlapsTarget(pos);
-
-  const chosen = candidates.find(fits);
-  let left;
-  let top;
-  if (chosen) {
-    left = chosen.left;
-    top = chosen.top;
-  } else {
-    left = clamp(preferredLeft, boundsMinX, Math.max(boundsMinX, boundsMaxX - cardWidth));
-    top = clamp(preferredTop, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
-    // Final safety: if fallback overlaps target, push below or above target.
-    if (overlapsTarget({ left, top })) {
-      const downTop = clamp(rect.bottom + gap, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
-      const upTop = clamp(rect.top - cardHeight - gap, boundsMinY, Math.max(boundsMinY, boundsMaxY - cardHeight));
-      top = downTop;
-      if (overlapsTarget({ left, top })) {
-        top = upTop;
-      }
-    }
-  }
-
-  tourCard.style.left = `${left}px`;
-  tourCard.style.top = `${top}px`;
-}
-
-function clearTourFocus() {
-  document.querySelectorAll(".tour-focus").forEach((el) => el.classList.remove("tour-focus"));
-}
-
-function finishTour() {
-  clearTourFocus();
-  state.tourActive = false;
-  tourOverlay.classList.add("hidden");
-  applyPreStartLock(false);
-  state.secondsLeft = PER_VIDEO_SECONDS;
-  restartTimer();
-}
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
