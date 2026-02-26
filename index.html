@@ -526,7 +526,7 @@
     <div class="home-banner">
       <span class="badge">Mission Mode</span>
       <h1 style="margin-top:8px;">Annotation Arena</h1>
-      <p class="muted" style="margin:0;">Enter your identity, review objectives, and complete all 5 challenge videos.</p>
+      <p class="muted" style="margin:0;">Enter your identity, review objectives, and complete all 3 challenge videos.</p>
     </div>
 
     <div class="grid">
@@ -552,11 +552,9 @@
           <li>You get one video at a time. Finish your current mission before moving on.</li>
           <li>Use <strong>Set Start</strong> and <strong>Set End</strong> to lock event timestamps.</li>
           <li>Write clear, objective descriptions of what happens in each segment.</li>
-          <li>Each video has a <strong>10-minute timer</strong>. Work efficiently.</li>
+          <li>Each video has a <strong>5-minute timer</strong>. Work efficiently.</li>
           <li>When at least one annotation is added, <strong>Next Video</strong> unlocks.</li>
-          <li>Finish all 5 videos to unlock final <strong>CSV Export</strong>.</li>
-          <li><strong>Once completed, please generate the file and share it with your assigned recruiter via email</strong>.</li>
-          <li>Finish all 5 videos to unlock <strong>Send to Google Sheets</strong>.</li>
+          <li>Finish all 3 videos to unlock <strong>Send to Google Sheets</strong>.</li>
         </ul>
       </div>
     </div>
@@ -570,7 +568,7 @@
           <span class="badge">Live</span>
         </div>
         <div class="row">
-          <span class="pill" id="progressPill">Video 1 of 5</span>
+          <span class="pill" id="progressPill">Video 1 of 3</span>
         </div>
         <div class="pill">User: <span id="userLabel"></span></div>
         <div class="pill">Time Left: <span id="timerLabel" class="timer">10:00</span></div>
@@ -581,7 +579,7 @@
         <div class="hud">
           <div class="hud-card">
             <div class="hud-label">Completed</div>
-            <div id="completedValue" class="hud-value">0 / 5</div>
+            <div id="completedValue" class="hud-value">0 / 3</div>
           </div>
           <div class="hud-card">
             <div class="hud-label">Annotations</div>
@@ -709,13 +707,11 @@
 const videos = [
   { id: 1, title: "Video 1", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/1.mp4" },
   { id: 2, title: "Video 2", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/2.mp4" },
-  { id: 3, title: "Video 3", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/3.mp4" },
-  { id: 4, title: "Video 4", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/4.mp4" },
-  { id: 5, title: "Video 5", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/5.mp4" }
+  { id: 3, title: "Video 3", url: "https://pub-6d0f43d2a0954c4d9aed8a6807ad1a8d.r2.dev/3.mp4" }
 ];
 
 const HOME_STORAGE_KEY = "video_annotator_used_emails";
-const PER_VIDEO_SECONDS = 10 * 60;
+const PER_VIDEO_SECONDS = 5 * 60;
 // Replace with your deployed Apps Script Web App URL (.../exec)
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXZ-qOGd6RiqRTK-sX_ej9V9YOV86IEWoikktEZ4xxmvPm_Jog6aDCbbuuJD7XokYk/exec";
 
